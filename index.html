@@ -146,6 +146,41 @@ function sendNotification(f, v) {
     }
 }
 
+    // 1. Register the Service Worker on Load
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(registration) {
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function(err) {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
+
+// 2. Updated Notification Function
+function sendNotification(f, v) {
+  if (Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(function(registration) {
+      registration.showNotification("⚠️ POWER ANOMALY", {
+        body: `Freq: ${f}Hz | Volt: ${v}V detected!`,
+        icon: "https://cdn-icons-png.flaticon.com/512/355/355980.png",
+        vibrate: [200, 100, 200],
+        tag: 'power-anomaly',
+        renotify: true
+      });
+    });
+  }
+}
+
+// 3. Keep your Enable button the same
+function enableNotifications() {
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      sendNotification("System", "Active");
+    }
+  });
+}
+
     window.onload = () => {
         initChart();
         fetchData();

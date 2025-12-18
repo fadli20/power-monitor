@@ -85,7 +85,7 @@
     <div class="section-header">📋 DATA LOGS (Last 10 Readings)</div>
     <div class="table-container">
         <table>
-            <thead><tr><th>Time</th><th>Frequency</th><th>Voltage</th><th>Status</th></tr></thead>
+            <thead><tr><th>Time</th><th>Frequency</th><th>Frequency Status</th><th>Voltage</th><th>Voltage Status</th></tr></thead>
             <tbody id="historyTableBody"></tbody>
         </table>
     </div>
@@ -145,8 +145,9 @@
             <tr>
                 <td>${row.time}</td>
                 <td>${row.freq.toFixed(2)} Hz</td>
-                <td>${row.volt.toFixed(1)} V</td>
                 <td><span class="status-tag" style="background:${getQColor(row.freqQuality || row.freqState)}">${row.freqQuality || row.freqState}</span></td>
+                <td>${row.volt.toFixed(1)} V</td>
+                <td><span class="status-tag" style="background:${getQColor(row.voltQuality || row.voltState)}">${row.voltQuality || row.voltState}</span></td>
             </tr>
         `).join('');
 

@@ -39,7 +39,7 @@
 
 <div class="container">
     <div class="header">
-        <h2>⚡ AI Power Guard <small style="font-size: 0.5em; color: var(--accent);">V3.0 PLATINUM</small></h2>
+        <h2>⚡ AI Power Guard <small style="font-size: 0.5em; color: var(--accent);">Power Grid Failure Detection System</small></h2>
         <div style="display:flex; gap:10px;">
             <button style="background:#475569" onclick="downloadCSV()">Export Logs</button>
             <button onclick="enableNotifications()">🔔 Setup Alerts</button>
@@ -199,8 +199,11 @@
     }
 
     function getQColor(q) {
-        const colors = { "Excellent": "var(--excellent)", "Stable": "var(--stable)", "Warning": "var(--warning)" };
-        return colors[q] || "var(--critical)";
+        //const colors = { "Excellent": "var(--excellent)", "Stable": "var(--stable)", "Warning": "var(--warning)" };
+        //return colors[q] || "var(--critical)";
+        
+        const colors = { "Normal": "var(--excellent)", "Anomaly": "var(--critical)" };
+        return colors[q] ;
     }
 
     function enableNotifications() {

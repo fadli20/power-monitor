@@ -39,7 +39,6 @@
             <div id="voltVal" class="val">---.- V</div>
             <span id="voltStatus" class="status-badge normal">INITIALIZING</span>
         </div>
-    </div>
     <div class="card">
     <div style="color: #94a3b8;">Session Peaks</div>
     <div style="display: flex; justify-content: space-around; margin-top: 15px;">
@@ -59,6 +58,8 @@
     <div id="uptime" style="font-size: 1.2rem; margin-top: 10px;">UP: 00:00:00</div>
     <div id="lastSync" style="font-size: 0.8rem; color: #64748b;">Last Sync: Just now</div>
 </div>
+    </div>
+
     <div id="chart-wrapper">
         <canvas id="powerChart"></canvas>
     </div>
@@ -100,6 +101,10 @@
         }
     }
 
+    let maxVolt = 0;
+let minVolt = 999;
+let startTime = Date.now();
+    
     function updateUI(data) {
         if (!data || data.length === 0) return;
         const latest = data[data.length - 1];
@@ -139,6 +144,30 @@
         powerChart.data.datasets[0].data = data.map(d => d.freq);
         powerChart.data.datasets[1].data = data.map(d => d.volt);
         powerChart.update('none');
+
+
+    if (!data || data.length === 0) return;
+    const latest = data[data.length - 1];
+
+    // 1. Update Min/Max
+    if (latest.volt > maxVolt) maxVolt = latest.volt;
+    if (latest.volt < minVolt && latest.volt > 0) minVolt = latest.volt;
+    document.getElementById('maxV').innerText = maxVolt.toFixed(1) + " V";
+    document.getElementById('minV').innerText = minVolt.toFixed(1) + " V";
+
+    // 2. Update Quality Color Coding
+    const fBadge = document.getElementById('freqStatus');
+    // Using the quality strings from Apps Script
+    fBadge.innerText = latest.freqQuality; 
+    setQualityColor(fBadge, latest.freqQuality);
+
+    // 3. Update Uptime
+    const diff = Math.floor((Date.now() - startTime) / 1000);
+    const hrs = Math.floor(diff / 3600).toString().padStart(2, '0');
+    const mins = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+    const secs = (diff % 60).toString().padStart(2, '0');
+    document.getElementById('uptime').innerText = `UP: ${hrs}:${mins}:${secs}`;
+        
     }
 
     function enableNotifications() {
@@ -199,33 +228,8 @@ function enableNotifications() {
   });
 }
 
-    let maxVolt = 0;
-let minVolt = 999;
-let startTime = Date.now();
 
-function updateUI(data) {
-    if (!data || data.length === 0) return;
-    const latest = data[data.length - 1];
 
-    // 1. Update Min/Max
-    if (latest.volt > maxVolt) maxVolt = latest.volt;
-    if (latest.volt < minVolt && latest.volt > 0) minVolt = latest.volt;
-    document.getElementById('maxV').innerText = maxVolt.toFixed(1) + " V";
-    document.getElementById('minV').innerText = minVolt.toFixed(1) + " V";
-
-    // 2. Update Quality Color Coding
-    const fBadge = document.getElementById('freqStatus');
-    // Using the quality strings from Apps Script
-    fBadge.innerText = latest.freqQuality; 
-    setQualityColor(fBadge, latest.freqQuality);
-
-    // 3. Update Uptime
-    const diff = Math.floor((Date.now() - startTime) / 1000);
-    const hrs = Math.floor(diff / 3600).toString().padStart(2, '0');
-    const mins = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-    const secs = (diff % 60).toString().padStart(2, '0');
-    document.getElementById('uptime').innerText = `UP: ${hrs}:${mins}:${secs}`;
-}
 
 function setQualityColor(element, quality) {
     const colors = {

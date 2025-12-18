@@ -183,7 +183,8 @@
         table.innerHTML = row + table.innerHTML;
         if(table.rows.length > 5) table.deleteRow(5); // Keep last 5 alerts
     }
-
+    
+    navigator.serviceWorker.register('sw.js');
     function sendQualityNotification(f, v, fQ, vQ) {
         if (Notification.permission === 'granted') {
             navigator.serviceWorker.ready.then(reg => {

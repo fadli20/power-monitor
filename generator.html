@@ -5,28 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Power Guard | Data Injector</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h2 { margin-top: 0; color: #38bdf8; font-size: 1.2rem; text-align: center; }
-        .input-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: #94a3b8; }
-        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; background: #3b82f6; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #2563eb; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #status { margin-top: 15px; text-align: center; font-size: 0.8rem; min-height: 1.2em; }
-        .success { color: #10b981; }
-        .error { color: #ef4444; }
-        .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .preset-btn { background: #334155; font-size: 0.7rem; padding: 8px; }
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid #334155; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { margin-top: 0; color: var(--accent); font-size: 1.2rem; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: #94a3b8; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        
+        /* Toggle Switch Styling */
+        .toggle-container { display: flex; align-items: center; justify-content: space-between; background: #111827; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; background: #3b82f6; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .preset-btn { background: #334155; font-size: 0.7rem; padding: 8px; margin: 0; }
+        #status { margin-top: 15px; text-align: center; font-size: 0.8rem; font-weight: bold; height: 1.2em; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>🚀 Data Injector</h2>
-    <p style="font-size: 0.75rem; color: #64748b; text-align: center; margin-bottom: 20px;">Manual override for testing anomalies</p>
+    <h2>🚀 Data Injector Pro</h2>
     
+    <div class="toggle-container">
+        <span style="font-size: 0.8rem; font-weight: bold;">Continuous Anomaly Mode</span>
+        <label class="switch">
+            <input type="checkbox" id="autoToggle" onchange="toggleAutoMode()">
+            <span class="slider"></span>
+        </label>
+    </div>
+
     <div class="input-group">
         <label>Frequency (Hz)</label>
         <input type="number" id="freq" step="0.01" value="50.00">
@@ -37,11 +52,9 @@
         <input type="number" id="volt" step="0.1" value="230.0">
     </div>
 
-    <button id="sendBtn" onclick="injectData()">Inject Data Point</button>
-    <div id="status"></div>
+    <button id="sendBtn" onclick="injectData()">Send Data Point</button>
+    <div id="status">Ready</div>
 
-    <hr style="border: 0; border-top: 1px solid #334155; margin: 20px 0;">
-    <label style="text-align: center;">Quick Presets</label>
     <div class="preset-grid">
         <button class="preset-btn" onclick="setValues(48.2, 230)">Low Freq</button>
         <button class="preset-btn" onclick="setValues(50, 195)">Low Volt</button>
@@ -51,44 +64,67 @@
 </div>
 
 <script>
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydU2cT7eXUums153MSWc3l3AZDxN4kosGqM2bvBOP9KYce9mZos7d4v6jPStpSPdYY/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydU2cT7eXUums153MSWc3l3AZDxN4kosGqM2bvBOP9KYce9mZos7d4v6jPStpSPdYY/exec"; // PASTE YOUR URL HERE
+    let autoInterval = null;
 
     function setValues(f, v) {
         document.getElementById('freq').value = f;
         document.getElementById('volt').value = v;
     }
 
-    async function injectData() {
+    function toggleAutoMode() {
+        const isChecked = document.getElementById('autoToggle').checked;
+        const status = document.getElementById('status');
+        
+        if (isChecked) {
+            status.innerText = "⏳ Auto-Mode Starting...";
+            autoInterval = setInterval(generateRandomAnomaly, 5000); // Sends every 5 seconds
+        } else {
+            clearInterval(autoInterval);
+            status.innerText = "Stopped";
+            status.style.color = "white";
+        }
+    }
+
+    function generateRandomAnomaly() {
+        // Randomly pick between 4 types of anomalies
+        const type = Math.floor(Math.random() * 4);
+        let f = 50.00, v = 230.0;
+
+        if (type === 0) f = (47 + Math.random() * 1.5).toFixed(2); // Frequency Drop
+        if (type === 1) f = (51.5 + Math.random() * 1.5).toFixed(2); // Frequency Spike
+        if (type === 2) v = (180 + Math.random() * 20).toFixed(1); // Voltage Sag
+        if (type === 3) v = (250 + Math.random() * 20).toFixed(1); // Voltage Surge
+
+        setValues(f, v);
+        injectData(true);
+    }
+
+    async function injectData(isAuto = false) {
         const btn = document.getElementById('sendBtn');
         const status = document.getElementById('status');
         const freq = document.getElementById('freq').value;
         const volt = document.getElementById('volt').value;
 
-        btn.disabled = true;
+        if (!isAuto) btn.disabled = true;
         status.innerText = "Sending...";
-        status.className = "";
-
+        
         try {
-            // Using no-cors mode is common for Google Script POSTs to avoid preflight issues
-            // but the sheet will still receive the data if set to "Anyone"
             await fetch(SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors", 
+                mode: "no-cors",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `frequency=${freq}&voltage=${volt}`
+                body: `freq=${freq}&volt=${volt}`
             });
-
-            status.innerText = "✅ Data Injected Successfully";
-            status.className = "success";
+            status.innerText = "✅ Data Injected";
+            status.style.color = "#10b981";
         } catch (e) {
-            status.innerText = "❌ Error: " + e.message;
-            status.className = "error";
+            status.innerText = "❌ Error";
+            status.style.color = "#ef4444";
         } finally {
-            btn.disabled = false;
+            if (!isAuto) btn.disabled = false;
         }
     }
 </script>
-
 </body>
 </html>
